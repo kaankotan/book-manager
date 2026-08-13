@@ -28,4 +28,9 @@ public class BookRepository : IBookRepository
     {
         await _dbContext.Books.AddAsync(book, cancellationToken);
     }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }
