@@ -1,0 +1,12 @@
+using BookManager.Domain.Entities;
+
+namespace BookManager.Application.Repositories.Books;
+
+public interface IBookRepository
+{
+    Task<IReadOnlyList<Book>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<Book?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task AddAsync(Book book, CancellationToken cancellationToken = default);
+}
