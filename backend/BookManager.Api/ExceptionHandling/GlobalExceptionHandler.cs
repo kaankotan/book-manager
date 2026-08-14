@@ -32,7 +32,8 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Title = title,
                 Detail = statusCode == StatusCodes.Status500InternalServerError ? null : exception.Message,
             },
-            cancellationToken);
+            cancellationToken
+        );
 
         return true;
     }
