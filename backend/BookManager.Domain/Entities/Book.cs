@@ -2,26 +2,35 @@ namespace BookManager.Domain.Entities;
 
 public class Book
 {
+    private readonly List<Author> _authors = new();
+
     public Guid Id { get; private set; }
 
-    public string Title { get; private set; }
+    public string Title { get; private set; } = null!;
 
-    public string Author { get; private set; }
+    public string Description { get; private set; } = null!;
 
-    public string? Isbn { get; private set; }
+    public DateOnly PublishedDate { get; private set; }
 
-    public int? PublishedYear { get; private set; }
+    public IReadOnlyCollection<Author> Authors => _authors.AsReadOnly();
 
-    public Book(
-        string title,
-        string author,
-        string? isbn = null,
-        int? publishedYear = null)
+    private Book() { }
+
+    public Book(string title, string description, DateOnly publishedDate, IEnumerable<Author>? authors = null)
     {
         Id = Guid.NewGuid();
         Title = title;
-        Author = author;
-        Isbn = isbn;
-        PublishedYear = publishedYear;
+        Description = description;
+        PublishedDate = publishedDate;
+
+        if (authors is not null)
+        {
+            _authors.AddRange(authors);
+        }
+    }
+
+    public void AddAuthor(Author author)
+    {
+        _authors.Add(author);
     }
 }

@@ -16,12 +16,15 @@ public class BookRepository : IBookRepository
 
     public async Task<IReadOnlyList<Book>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Books.AsNoTracking().ToListAsync(cancellationToken);
+        return await _dbContext.Books.AsNoTracking().Include(book => book.Authors).ToListAsync(cancellationToken);
     }
 
     public async Task<Book?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Books.AsNoTracking().FirstOrDefaultAsync(book => book.Id == id, cancellationToken);
+        return await _dbContext
+            .Books.AsNoTracking()
+            .Include(book => book.Authors)
+            .FirstOrDefaultAsync(book => book.Id == id, cancellationToken);
     }
 
     public async Task AddAsync(Book book, CancellationToken cancellationToken = default)
