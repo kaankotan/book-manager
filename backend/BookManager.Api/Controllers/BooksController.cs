@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookManager.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/books")]
 public class BooksController : ControllerBase
 {
     private readonly ISender _sender;
