@@ -1,6 +1,7 @@
 using BookManager.Application.Repositories.Authors;
 using BookManager.Application.Repositories.BookEvents;
 using BookManager.Application.Repositories.Books;
+using BookManager.Infrastructure.Events;
 using BookManager.Infrastructure.Persistence;
 using BookManager.Infrastructure.Persistence.Interceptors;
 using BookManager.Infrastructure.Repositories.Authors;
@@ -30,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<IAuthorRepository, AuthorRepository>();
         services.AddScoped<IBookEventRepository, BookEventRepository>();
+
+        services.AddHostedService<BookEventDispatcher>();
 
         return services;
     }
