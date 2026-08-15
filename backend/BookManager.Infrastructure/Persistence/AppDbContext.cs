@@ -16,6 +16,10 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<Book>(book =>
         {
+            book.Property(b => b.Title).HasMaxLength(Book.TitleMaxLength);
+
+            book.Property(b => b.Description).HasMaxLength(Book.DescriptionMaxLength);
+
             book.Navigation(b => b.Authors).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             book.HasMany(b => b.Authors).WithMany(a => a.Books).UsingEntity(join => join.ToTable("BookAuthors"));
