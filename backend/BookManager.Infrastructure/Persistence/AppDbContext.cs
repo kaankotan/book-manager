@@ -12,6 +12,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Author> Authors => Set<Author>();
 
+    public DbSet<BookEvent> BookEvents => Set<BookEvent>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Book>(book =>
@@ -23,6 +25,17 @@ public class AppDbContext : DbContext
             book.Navigation(b => b.Authors).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             book.HasMany(b => b.Authors).WithMany(a => a.Books).UsingEntity(join => join.ToTable("BookAuthors"));
+
+            book.Ignore(b => b.PendingChanges);
+        });
+
+        modelBuilder.Entity<BookEvent>(bookEvent =>
+        {
+            bookEvent.Property(e => e.NewValue).HasMaxLength(Book.DescriptionMaxLength);
+
+            bookEvent.HasIndex(e => new { e.BookId, e.Id }).IsDescending(false, true);
+
+            bookEvent.HasIndex(e => e.DispatchedAt).HasFilter("\"DispatchedAt\" IS NULL");
         });
 
         modelBuilder.Entity<Author>(author =>

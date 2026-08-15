@@ -8,6 +8,8 @@ public class Book
 
     private readonly List<Author> _authors = new();
 
+    private readonly List<BookChange> _changes = new();
+
     public Guid Id { get; private set; }
 
     public string Title { get; private set; } = null!;
@@ -17,6 +19,8 @@ public class Book
     public DateOnly PublishedDate { get; private set; }
 
     public IReadOnlyCollection<Author> Authors => _authors.AsReadOnly();
+
+    public IReadOnlyCollection<BookChange> PendingChanges => _changes.AsReadOnly();
 
     private Book() { }
 
@@ -31,12 +35,28 @@ public class Book
         {
             _authors.AddRange(authors);
         }
+
+        _changes.Add(new BookChange(BookChangeType.Created, title));
     }
 
     public void UpdateDetails(string title, string description)
     {
-        Title = title;
-        Description = description;
+        if (!string.Equals(Title, title, StringComparison.Ordinal))
+        {
+            Title = title;
+            _changes.Add(new BookChange(BookChangeType.TitleChanged, title));
+        }
+
+        if (!string.Equals(Description, description, StringComparison.Ordinal))
+        {
+            Description = description;
+            _changes.Add(new BookChange(BookChangeType.DescriptionChanged, description));
+        }
+    }
+
+    public void ClearPendingChanges()
+    {
+        _changes.Clear();
     }
 
     public void AddAuthor(Author author)
