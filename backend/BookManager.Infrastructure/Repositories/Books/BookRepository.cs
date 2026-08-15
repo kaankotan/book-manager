@@ -27,6 +27,11 @@ public class BookRepository : IBookRepository
             .FirstOrDefaultAsync(book => book.Id == id, cancellationToken);
     }
 
+    public async Task<Book?> GetTrackedByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Books.Include(book => book.Authors).FirstOrDefaultAsync(book => book.Id == id, cancellationToken);
+    }
+
     public async Task AddAsync(Book book, CancellationToken cancellationToken = default)
     {
         await _dbContext.Books.AddAsync(book, cancellationToken);

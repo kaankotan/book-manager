@@ -1,4 +1,5 @@
 using BookManager.Application.Books.Commands.AddBook;
+using BookManager.Application.Books.Commands.UpdateBook;
 using BookManager.Application.Books.Dtos;
 using BookManager.Application.Books.Queries.GetAllBooks;
 using BookManager.Application.Books.Queries.GetBookById;
@@ -40,5 +41,13 @@ public class BooksController : ControllerBase
         var book = await _sender.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<BookDto>> Update(Guid id, UpdateBookCommand command, CancellationToken cancellationToken)
+    {
+        var book = await _sender.Send(command with { Id = id }, cancellationToken);
+
+        return Ok(book);
     }
 }

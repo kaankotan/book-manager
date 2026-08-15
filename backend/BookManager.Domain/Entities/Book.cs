@@ -2,6 +2,10 @@ namespace BookManager.Domain.Entities;
 
 public class Book
 {
+    public const int TitleMaxLength = 1024;
+
+    public const int DescriptionMaxLength = 1024;
+
     private readonly List<Author> _authors = new();
 
     public Guid Id { get; private set; }
@@ -27,6 +31,12 @@ public class Book
         {
             _authors.AddRange(authors);
         }
+    }
+
+    public void UpdateDetails(string title, string description)
+    {
+        Title = title;
+        Description = description;
     }
 
     public void AddAuthor(Author author)
