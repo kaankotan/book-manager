@@ -1,3 +1,4 @@
+using AutoMapper;
 using BookManager.Application.Events.Dtos;
 using BookManager.Application.Repositories.BookEvents;
 using MediatR;
@@ -7,10 +8,12 @@ namespace BookManager.Application.Events.Queries.GetBookEvents;
 public class GetBookEventsQueryHandler : IRequestHandler<GetBookEventsQuery, BookEventPageDto>
 {
     private readonly IBookEventRepository _bookEventRepository;
+    private readonly IMapper _mapper;
 
-    public GetBookEventsQueryHandler(IBookEventRepository bookEventRepository)
+    public GetBookEventsQueryHandler(IBookEventRepository bookEventRepository, IMapper mapper)
     {
         _bookEventRepository = bookEventRepository;
+        _mapper = mapper;
     }
 
     public async Task<BookEventPageDto> Handle(GetBookEventsQuery request, CancellationToken cancellationToken)
@@ -19,7 +22,7 @@ public class GetBookEventsQueryHandler : IRequestHandler<GetBookEventsQuery, Boo
 
         var hasMore = events.Count > request.Limit;
 
-        var items = events.Take(request.Limit).Select(BookEventMapper.ToDto).ToList();
+        var items = _mapper.Map<List<BookEventDto>>(events.Take(request.Limit).ToList());
 
         var nextCursor = hasMore ? items[^1].Id : (long?)null;
 

@@ -1,3 +1,4 @@
+using AutoMapper;
 using BookManager.Application.Events;
 using BookManager.Application.Events.Dtos;
 using BookManager.Infrastructure.Persistence;
@@ -67,6 +68,7 @@ public class BookEventDispatcher : BackgroundService
 
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notifier = scope.ServiceProvider.GetRequiredService<IBookEventNotifier>();
+        var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -92,7 +94,7 @@ public class BookEventDispatcher : BackgroundService
 
         foreach (var bookEvent in events)
         {
-            await notifier.PublishAsync(BookEventMapper.ToDto(bookEvent), cancellationToken);
+            await notifier.PublishAsync(mapper.Map<BookEventDto>(bookEvent), cancellationToken);
 
             bookEvent.MarkDispatched(dispatchedAt);
         }
