@@ -18,7 +18,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options => options.StatefulReconnectBufferSize = 100_000);
 builder.Services.AddSingleton<IBookEventNotifier, SignalRBookEventNotifier>();
 
 if (allowedOrigins.Length > 0)
@@ -52,6 +52,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
-app.MapHub<BookEventsHub>("/hubs/book-events");
+
+// Buffers outbound messages across brief disconnects so a reconnecting client does not miss events.
+app.MapHub<BookEventsHub>("/hubs/book-events", options => options.AllowStatefulReconnects = true);
 
 app.Run();
