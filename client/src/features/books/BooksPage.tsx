@@ -184,13 +184,7 @@ export function BooksPage() {
       ) : (
         <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
           <Table.ScrollContainer minWidth={720}>
-            <Table
-              striped
-              highlightOnHover
-              stickyHeader
-              stickyHeaderOffset={60}
-              verticalSpacing="md"
-            >
+            <Table striped highlightOnHover stickyHeader verticalSpacing="md">
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th w="26%">Title</Table.Th>
