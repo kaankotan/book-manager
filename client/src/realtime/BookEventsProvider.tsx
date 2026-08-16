@@ -144,7 +144,7 @@ export function BookEventsProvider({ children }: { children: ReactNode }) {
 
       notifications.show({
         title: label,
-        message: bookTitle ?? event.newValue ?? `Book ${event.bookId.slice(0, 8)}`,
+        message: event.newValue ?? bookTitle ?? `Book ${event.bookId.slice(0, 8)}`,
         color,
         icon: <Icon size={17} />,
         autoClose: 4500,

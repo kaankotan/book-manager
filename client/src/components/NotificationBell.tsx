@@ -42,12 +42,20 @@ function NotificationRow({
       </ThemeIcon>
 
       <Box style={{ flex: 1, minWidth: 0 }}>
-        <Text size="sm" fw={600} lineClamp={1}>
-          {label}
-        </Text>
-        <Text size="xs" c="dimmed" lineClamp={1}>
-          {bookTitle ?? event.newValue ?? `Book ${event.bookId.slice(0, 8)}`}
-        </Text>
+        <Group gap={6} wrap="nowrap">
+          <Text size="sm" fw={600} c={`${color}.7`} style={{ flexShrink: 0 }}>
+            {label}
+          </Text>
+          <Text size="sm" c="dimmed" lineClamp={1}>
+            {bookTitle ?? `Book ${event.bookId.slice(0, 8)}`}
+          </Text>
+        </Group>
+
+        {event.newValue !== null && event.newValue !== undefined && (
+          <Text size="xs" c="dimmed" lineClamp={2}>
+            {event.newValue}
+          </Text>
+        )}
       </Box>
 
       <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
