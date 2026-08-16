@@ -12,9 +12,11 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-// Without this, Swashbuckle ignores C# nullable annotations and marks every property optional and nullable,
-// which makes the generated TypeScript client types useless.
-builder.Services.AddSwaggerGen(options => options.SupportNonNullableReferenceTypes());
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SupportNonNullableReferenceTypes();
+    options.NonNullableReferenceTypesAsRequired();
+});
 builder.Services.AddOpenApi();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -55,7 +57,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
-// Buffers outbound messages across brief disconnects so a reconnecting client does not miss events.
 app.MapHub<BookEventsHub>("/hubs/book-events", options => options.AllowStatefulReconnects = true);
 
 app.Run();

@@ -15,10 +15,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * The controllers carry no [ProducesResponseType] attributes, so the generated types only describe
- * the 200 body. Anything else has to be narrowed from the raw Response at runtime.
- */
 export async function unwrap<T>(result: Promise<{ data?: T; response: Response }>): Promise<T> {
   const { data, response } = await result
 

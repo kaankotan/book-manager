@@ -1,15 +1,44 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { booksQueryKey } from '../features/books/useBooks'
-import { BOOK_EVENT_CREATED, createBookEventsConnection, type BookEvent } from './connection'
+import { changeTypeColor } from '../features/events/changeType'
+import {
+  eventsQueryKey,
+  type BookEvent,
+  type BookEventPage,
+} from '../features/events/useBookEvents'
+import { BOOK_EVENT_CREATED, createBookEventsConnection } from './connection'
 
 export type RealtimeStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
+
+type EventsCache = InfiniteData<BookEventPage, number | null>
 
 const RealtimeStatusContext = createContext<RealtimeStatus>('disconnected')
 
 export function useRealtimeStatus(): RealtimeStatus {
   return use(RealtimeStatusContext)
+}
+
+function alreadyContainsEvent(cache: EventsCache, eventId: number): boolean {
+  return cache.pages.some((page) => page.items.some((item) => item.id === eventId))
+}
+
+function withEventPrepended(
+  cache: EventsCache | undefined,
+  event: BookEvent,
+): EventsCache | undefined {
+  const feedNotLoadedYet = !cache || cache.pages.length === 0
+
+  if (feedNotLoadedYet || alreadyContainsEvent(cache, event.id)) {
+    return cache
+  }
+
+  const [newestPage, ...olderPages] = cache.pages
+
+  return {
+    ...cache,
+    pages: [{ ...newestPage, items: [event, ...newestPage.items] }, ...olderPages],
+  }
 }
 
 export function BookEventsProvider({ children }: { children: ReactNode }) {
@@ -20,14 +49,15 @@ export function BookEventsProvider({ children }: { children: ReactNode }) {
     const connection = createBookEventsConnection()
 
     connection.on(BOOK_EVENT_CREATED, (event: BookEvent) => {
-      // Delivery is at-least-once and unordered, so the payload is only ever treated as a hint that
-      // the server has newer data — never as the source of truth. Refetching keeps that honest.
-      void queryClient.invalidateQueries({ queryKey: booksQueryKey })
+      queryClient.setQueryData<EventsCache>(eventsQueryKey, (cache) =>
+        withEventPrepended(cache, event),
+      )
 
       notifications.show({
-        message: `${event.changeType} on book ${event.bookId.slice(0, 8)}`,
-        color: 'blue',
-        autoClose: 3000,
+        title: event.changeType,
+        message: event.newValue ?? `Book ${event.bookId.slice(0, 8)}`,
+        color: changeTypeColor(event.changeType),
+        autoClose: 4000,
       })
     })
 
@@ -35,15 +65,13 @@ export function BookEventsProvider({ children }: { children: ReactNode }) {
     connection.onreconnected(() => setStatus('connected'))
     connection.onclose(() => setStatus('disconnected'))
 
-    const started = connection
+    const startAttempt = connection
       .start()
       .then(() => setStatus('connected'))
       .catch(() => setStatus('disconnected'))
 
     return () => {
-      // StrictMode mounts twice in dev. Calling stop() while start() is still pending throws, so
-      // the teardown always waits for the start attempt to settle first.
-      void started.then(() => connection.stop())
+      void startAttempt.then(() => connection.stop())
     }
   }, [queryClient])
 

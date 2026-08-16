@@ -326,49 +326,49 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         AddAuthorCommand: {
-            name?: string | null;
+            name: string;
         };
         AddBookCommand: {
-            title?: string | null;
-            description?: string | null;
+            title: string;
+            description: string;
             /** Format: date */
-            publishedDate?: string;
-            authorIds?: string[] | null;
+            publishedDate: string;
+            authorIds: string[];
         };
         AuthorDto: {
             /** Format: uuid */
-            id?: string;
-            name?: string | null;
+            id: string;
+            name: string;
         };
         BookDto: {
             /** Format: uuid */
-            id?: string;
-            title?: string | null;
-            description?: string | null;
+            id: string;
+            title: string;
+            description: string;
             /** Format: date */
-            publishedDate?: string;
-            authors?: components["schemas"]["AuthorDto"][] | null;
+            publishedDate: string;
+            authors: components["schemas"]["AuthorDto"][];
         };
         BookEventDto: {
             /** Format: int64 */
-            id?: number;
+            id: number;
             /** Format: uuid */
-            bookId?: string;
-            changeType?: string | null;
+            bookId: string;
+            changeType: string;
             newValue?: string | null;
             /** Format: date-time */
-            occurredAt?: string;
+            occurredAt: string;
         };
         BookEventPageDto: {
-            items?: components["schemas"]["BookEventDto"][] | null;
+            items: components["schemas"]["BookEventDto"][];
             /** Format: int64 */
             nextCursor?: number | null;
         };
         UpdateBookCommand: {
             /** Format: uuid */
-            id?: string;
-            title?: string | null;
-            description?: string | null;
+            id: string;
+            title: string;
+            description: string;
         };
     };
     responses: never;

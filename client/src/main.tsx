@@ -14,7 +14,6 @@ import './index.css'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Book events invalidate the cache as they arrive, so background refetching stays modest.
       staleTime: 30_000,
       retry: 1,
     },
