@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api, unwrap } from '../../api/client'
 import type { components } from '../../api/schema'
@@ -11,4 +12,10 @@ export function useBooks() {
     queryKey: booksQueryKey,
     queryFn: ({ signal }) => unwrap(api.GET('/api/books', { signal })),
   })
+}
+
+export function useBookTitles(): ReadonlyMap<string, string> {
+  const { data } = useBooks()
+
+  return useMemo(() => new Map((data ?? []).map((book) => [book.id, book.title])), [data])
 }

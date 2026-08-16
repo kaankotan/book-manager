@@ -8,12 +8,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppShell header={{ height: 60 }} padding="md">
-        <AppShell.Header>
+        <AppShell.Header className="app-header">
           <Header />
         </AppShell.Header>
 
         <AppShell.Main>
-          <Container size="lg">
+          <Container size="lg" py="md">
             <Routes>
               <Route path="/books" element={<BooksPage />} />
               <Route path="/events" element={<EventsPage />} />

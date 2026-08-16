@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import App from './App'
 import { BookEventsProvider } from './realtime/BookEventsProvider'
+import { theme } from './theme'
 
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
@@ -22,8 +23,8 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MantineProvider defaultColorScheme="auto">
-      <Notifications position="bottom-right" />
+    <MantineProvider theme={theme} defaultColorScheme="auto">
+      <Notifications position="bottom-right" limit={4} />
       <QueryClientProvider client={queryClient}>
         <BookEventsProvider>
           <App />

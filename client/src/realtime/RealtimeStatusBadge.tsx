@@ -1,20 +1,52 @@
-import { Badge } from '@mantine/core'
+import { Box, Group, Text, Tooltip } from '@mantine/core'
 import { useRealtimeStatus, type RealtimeStatus } from './BookEventsProvider'
 
-const APPEARANCE: Record<RealtimeStatus, { color: string; label: string }> = {
-  connecting: { color: 'gray', label: 'Connecting' },
-  connected: { color: 'green', label: 'Live' },
-  reconnecting: { color: 'yellow', label: 'Reconnecting' },
-  disconnected: { color: 'red', label: 'Offline' },
+const APPEARANCE: Record<RealtimeStatus, { color: string; label: string; hint: string }> = {
+  connecting: {
+    color: 'var(--mantine-color-gray-5)',
+    label: 'Connecting',
+    hint: 'Opening the live connection',
+  },
+  connected: {
+    color: 'var(--mantine-color-teal-6)',
+    label: 'Live',
+    hint: 'Changes appear here the moment they happen',
+  },
+  reconnecting: {
+    color: 'var(--mantine-color-yellow-6)',
+    label: 'Reconnecting',
+    hint: 'Connection dropped, trying again',
+  },
+  disconnected: {
+    color: 'var(--mantine-color-red-6)',
+    label: 'Offline',
+    hint: 'Not receiving live updates, refresh to retry',
+  },
 }
 
 export function RealtimeStatusBadge() {
   const status = useRealtimeStatus()
-  const { color, label } = APPEARANCE[status]
+  const { color, label, hint } = APPEARANCE[status]
 
   return (
-    <Badge color={color} variant="light">
-      {label}
-    </Badge>
+    <Tooltip label={hint} position="bottom-end">
+      <Group gap={7} wrap="nowrap" style={{ cursor: 'default' }}>
+        <Box
+          w={8}
+          h={8}
+          style={{
+            borderRadius: '50%',
+            background: color,
+            boxShadow:
+              status === 'connected'
+                ? `0 0 0 3px color-mix(in srgb, ${color} 25%, transparent)`
+                : undefined,
+          }}
+        />
+        <Text size="xs" c="dimmed" fw={500} visibleFrom="xs">
+          {label}
+        </Text>
+      </Group>
+    </Tooltip>
   )
 }

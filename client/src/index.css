@@ -1,3 +1,25 @@
 body {
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-mantine-color-scheme='light'] {
+  --mantine-color-body: #f8f8fb;
+}
+
+.app-header {
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--mantine-color-body) 82%, transparent);
+}
+
+.day-heading {
+  position: sticky;
+  top: var(--app-shell-header-offset, 60px);
+  z-index: 1;
+  background: var(--mantine-color-body);
+}
+
+.event-row:hover {
+  background: var(--mantine-color-default-hover);
 }

@@ -9,7 +9,8 @@ import {
 } from 'react'
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { changeTypeColor } from '../features/events/changeType'
+import { booksQueryKey, type Book } from '../features/books/useBooks'
+import { changeTypeAppearance } from '../features/events/changeType'
 import {
   eventsQueryKey,
   type BookEvent,
@@ -31,6 +32,8 @@ type EventsCache = InfiniteData<BookEventPage, number | null>
 
 const MAX_BUFFERED_NOTIFICATIONS = 20
 
+const SEEN_EVENT_CAPACITY = 500
+
 const EMPTY_INBOX: InboxState = { items: [], unreadCount: 0 }
 
 const RealtimeStatusContext = createContext<RealtimeStatus>('disconnected')
@@ -46,6 +49,32 @@ export function useRealtimeStatus(): RealtimeStatus {
 
 export function useNotificationInbox(): NotificationInbox {
   return use(NotificationInboxContext)
+}
+
+function createSeenEventLog() {
+  const ids = new Set<number>()
+  const order: number[] = []
+
+  return {
+    accept(id: number): boolean {
+      if (ids.has(id)) {
+        return false
+      }
+
+      ids.add(id)
+      order.push(id)
+
+      if (order.length > SEEN_EVENT_CAPACITY) {
+        const evicted = order.shift()
+
+        if (evicted !== undefined) {
+          ids.delete(evicted)
+        }
+      }
+
+      return true
+    },
+  }
 }
 
 function alreadyContainsEvent(cache: EventsCache, eventId: number): boolean {
@@ -71,10 +100,6 @@ function withEventPrepended(
 }
 
 function withEventBuffered(current: InboxState, event: BookEvent): InboxState {
-  if (current.items.some((item) => item.id === event.id)) {
-    return current
-  }
-
   return {
     items: [event, ...current.items].slice(0, MAX_BUFFERED_NOTIFICATIONS),
     unreadCount: current.unreadCount + 1,
@@ -97,19 +122,32 @@ export function BookEventsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const connection = createBookEventsConnection()
+    const seenEvents = createSeenEventLog()
 
     connection.on(BOOK_EVENT_CREATED, (event: BookEvent) => {
+      if (!seenEvents.accept(event.id)) {
+        return
+      }
+
       queryClient.setQueryData<EventsCache>(eventsQueryKey, (cache) =>
         withEventPrepended(cache, event),
       )
 
+      void queryClient.invalidateQueries({ queryKey: booksQueryKey })
+
       setInbox((current) => withEventBuffered(current, event))
 
+      const { label, color, icon: Icon } = changeTypeAppearance(event.changeType)
+      const bookTitle = queryClient
+        .getQueryData<Book[]>(booksQueryKey)
+        ?.find((book) => book.id === event.bookId)?.title
+
       notifications.show({
-        title: event.changeType,
-        message: event.newValue ?? `Book ${event.bookId.slice(0, 8)}`,
-        color: changeTypeColor(event.changeType),
-        autoClose: 4000,
+        title: label,
+        message: bookTitle ?? event.newValue ?? `Book ${event.bookId.slice(0, 8)}`,
+        color,
+        icon: <Icon size={17} />,
+        autoClose: 4500,
       })
     })
 
