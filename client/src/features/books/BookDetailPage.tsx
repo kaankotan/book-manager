@@ -21,7 +21,9 @@ import {
 import { Link, useParams } from 'react-router'
 import { StatePanel } from '../../components/StatePanel'
 import { formatPublishedDate } from '../../lib/time'
+import { UnseenChangesModal } from './UnseenChangesModal'
 import { isNotFound, useBook } from './useBook'
+import { useUnseenChangesAnnouncement } from './useUnseenChanges'
 import type { Book } from './useBooks'
 
 function BackLink() {
@@ -62,9 +64,18 @@ function MetaItem({
 
 function BookDetail({ book }: { book: Book }) {
   const published = formatPublishedDate(book.publishedDate)
+  const unseenChanges = useUnseenChangesAnnouncement(book.id)
 
   return (
     <Stack gap="lg">
+      <UnseenChangesModal
+        opened={unseenChanges.opened}
+        onClose={unseenChanges.close}
+        bookTitle={book.title}
+        items={unseenChanges.items}
+        hasMore={unseenChanges.hasMore}
+      />
+
       <BackLink />
 
       <Paper withBorder radius="lg" p="xl">

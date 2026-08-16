@@ -1,12 +1,14 @@
 using BookManager.Application.Repositories.Authors;
 using BookManager.Application.Repositories.BookEvents;
 using BookManager.Application.Repositories.Books;
+using BookManager.Application.Repositories.BookViews;
 using BookManager.Infrastructure.Events;
 using BookManager.Infrastructure.Persistence;
 using BookManager.Infrastructure.Persistence.Interceptors;
 using BookManager.Infrastructure.Repositories.Authors;
 using BookManager.Infrastructure.Repositories.BookEvents;
 using BookManager.Infrastructure.Repositories.Books;
+using BookManager.Infrastructure.Repositories.BookViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<IAuthorRepository, AuthorRepository>();
         services.AddScoped<IBookEventRepository, BookEventRepository>();
+        services.AddScoped<IBookViewRepository, BookViewRepository>();
 
         services.AddHostedService<BookEventDispatcher>();
 

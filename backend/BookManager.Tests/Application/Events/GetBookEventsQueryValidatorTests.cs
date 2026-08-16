@@ -12,7 +12,7 @@ public class GetBookEventsQueryValidatorTests
     [InlineData(100)]
     public void Validate_WithALimitInsideTheAllowedRange_Passes(int limit)
     {
-        var result = _validator.Validate(new GetBookEventsQuery(null, null, limit));
+        var result = _validator.Validate(new GetBookEventsQuery(null, null, null, limit));
 
         Assert.True(result.IsValid);
     }
@@ -23,7 +23,7 @@ public class GetBookEventsQueryValidatorTests
     [InlineData(101)]
     public void Validate_WithALimitOutsideTheAllowedRange_Fails(int limit)
     {
-        var result = _validator.Validate(new GetBookEventsQuery(null, null, limit));
+        var result = _validator.Validate(new GetBookEventsQuery(null, null, null, limit));
 
         Assert.Contains(result.Errors, error => error.PropertyName == nameof(GetBookEventsQuery.Limit));
     }
@@ -31,7 +31,7 @@ public class GetBookEventsQueryValidatorTests
     [Fact]
     public void Validate_WithoutACursor_Passes()
     {
-        var result = _validator.Validate(new GetBookEventsQuery(null, null, 10));
+        var result = _validator.Validate(new GetBookEventsQuery(null, null, null, 10));
 
         Assert.True(result.IsValid);
     }
@@ -39,7 +39,7 @@ public class GetBookEventsQueryValidatorTests
     [Fact]
     public void Validate_WithAPositiveCursor_Passes()
     {
-        var result = _validator.Validate(new GetBookEventsQuery(null, 1, 10));
+        var result = _validator.Validate(new GetBookEventsQuery(null, 1, null, 10));
 
         Assert.True(result.IsValid);
     }
@@ -49,15 +49,33 @@ public class GetBookEventsQueryValidatorTests
     [InlineData(-1)]
     public void Validate_WithANonPositiveCursor_Fails(long before)
     {
-        var result = _validator.Validate(new GetBookEventsQuery(null, before, 10));
+        var result = _validator.Validate(new GetBookEventsQuery(null, before, null, 10));
 
         Assert.Contains(result.Errors, error => error.PropertyName == nameof(GetBookEventsQuery.Before));
     }
 
     [Fact]
+    public void Validate_WithAPositiveSinceCursor_Passes()
+    {
+        var result = _validator.Validate(new GetBookEventsQuery(null, null, 1, 10));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_WithANonPositiveSinceCursor_Fails(long since)
+    {
+        var result = _validator.Validate(new GetBookEventsQuery(null, null, since, 10));
+
+        Assert.Contains(result.Errors, error => error.PropertyName == nameof(GetBookEventsQuery.Since));
+    }
+
+    [Fact]
     public void Validate_WithABookIdFilter_Passes()
     {
-        var result = _validator.Validate(new GetBookEventsQuery(Guid.NewGuid(), null, 10));
+        var result = _validator.Validate(new GetBookEventsQuery(Guid.NewGuid(), null, null, 10));
 
         Assert.True(result.IsValid);
     }

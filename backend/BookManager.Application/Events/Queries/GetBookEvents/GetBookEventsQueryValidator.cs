@@ -9,5 +9,7 @@ public class GetBookEventsQueryValidator : AbstractValidator<GetBookEventsQuery>
         RuleFor(query => query.Limit).InclusiveBetween(1, 100);
 
         RuleFor(query => query.Before).GreaterThan(0).When(query => query.Before is not null);
+
+        RuleFor(query => query.Since).GreaterThan(0).When(query => query.Since is not null);
     }
 }

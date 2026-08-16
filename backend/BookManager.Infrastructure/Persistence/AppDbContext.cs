@@ -14,6 +14,8 @@ public class AppDbContext : DbContext
 
     public DbSet<BookEvent> BookEvents => Set<BookEvent>();
 
+    public DbSet<BookView> BookViews => Set<BookView>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Book>(book =>
@@ -36,6 +38,15 @@ public class AppDbContext : DbContext
             bookEvent.HasIndex(e => new { e.BookId, e.Id }).IsDescending(false, true);
 
             bookEvent.HasIndex(e => e.DispatchedAt).HasFilter("\"DispatchedAt\" IS NULL");
+        });
+
+        modelBuilder.Entity<BookView>(bookView =>
+        {
+            bookView.HasKey(v => v.BookId);
+
+            bookView.Property(v => v.BookId).ValueGeneratedNever();
+
+            bookView.HasOne<Book>().WithOne().HasForeignKey<BookView>(v => v.BookId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Author>(author =>

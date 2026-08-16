@@ -4,5 +4,13 @@ namespace BookManager.Application.Repositories.BookEvents;
 
 public interface IBookEventRepository
 {
-    Task<IReadOnlyList<BookEvent>> GetPageAsync(Guid? bookId, long? before, int limit, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<BookEvent>> GetPageAsync(
+        Guid? bookId,
+        long? before,
+        long? since,
+        int limit,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<long?> GetLatestIdAsync(Guid bookId, CancellationToken cancellationToken = default);
 }

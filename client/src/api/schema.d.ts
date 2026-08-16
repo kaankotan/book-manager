@@ -239,6 +239,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/books/{bookId}/unseen-changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    bookId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UnseenBookChangesDto"];
+                        "application/json": components["schemas"]["UnseenBookChangesDto"];
+                        "text/json": components["schemas"]["UnseenBookChangesDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/books/{bookId}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    bookId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["MarkBookViewedCommand"];
+                    "text/json": components["schemas"]["MarkBookViewedCommand"];
+                    "application/*+json": components["schemas"]["MarkBookViewedCommand"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -250,6 +332,7 @@ export interface paths {
             parameters: {
                 query?: {
                     before?: number;
+                    since?: number;
                     limit?: number;
                 };
                 header?: never;
@@ -290,6 +373,7 @@ export interface paths {
             parameters: {
                 query?: {
                     before?: number;
+                    since?: number;
                     limit?: number;
                 };
                 header?: never;
@@ -363,6 +447,21 @@ export interface components {
             items: components["schemas"]["BookEventDto"][];
             /** Format: int64 */
             nextCursor?: number | null;
+        };
+        MarkBookViewedCommand: {
+            /** Format: uuid */
+            bookId: string;
+            /** Format: int64 */
+            lastSeenEventId: number;
+        };
+        UnseenBookChangesDto: {
+            firstView: boolean;
+            /** Format: int64 */
+            lastSeenEventId?: number | null;
+            /** Format: int64 */
+            latestEventId?: number | null;
+            items: components["schemas"]["BookEventDto"][];
+            hasMore: boolean;
         };
         UpdateBookCommand: {
             /** Format: uuid */

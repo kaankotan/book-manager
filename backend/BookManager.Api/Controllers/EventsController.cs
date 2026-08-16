@@ -20,11 +20,12 @@ public class EventsController : ControllerBase
     [HttpGet("/api/events")]
     public async Task<ActionResult<BookEventPageDto>> GetAll(
         [FromQuery] long? before,
+        [FromQuery] long? since,
         [FromQuery] int limit = DefaultLimit,
         CancellationToken cancellationToken = default
     )
     {
-        var events = await _sender.Send(new GetBookEventsQuery(null, before, limit), cancellationToken);
+        var events = await _sender.Send(new GetBookEventsQuery(null, before, since, limit), cancellationToken);
 
         return Ok(events);
     }
@@ -33,11 +34,12 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<BookEventPageDto>> GetByBook(
         Guid bookId,
         [FromQuery] long? before,
+        [FromQuery] long? since,
         [FromQuery] int limit = DefaultLimit,
         CancellationToken cancellationToken = default
     )
     {
-        var events = await _sender.Send(new GetBookEventsQuery(bookId, before, limit), cancellationToken);
+        var events = await _sender.Send(new GetBookEventsQuery(bookId, before, since, limit), cancellationToken);
 
         return Ok(events);
     }

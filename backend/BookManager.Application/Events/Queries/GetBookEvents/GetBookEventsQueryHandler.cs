@@ -18,7 +18,13 @@ public class GetBookEventsQueryHandler : IRequestHandler<GetBookEventsQuery, Boo
 
     public async Task<BookEventPageDto> Handle(GetBookEventsQuery request, CancellationToken cancellationToken)
     {
-        var events = await _bookEventRepository.GetPageAsync(request.BookId, request.Before, request.Limit, cancellationToken);
+        var events = await _bookEventRepository.GetPageAsync(
+            request.BookId,
+            request.Before,
+            request.Since,
+            request.Limit,
+            cancellationToken
+        );
 
         var hasMore = events.Count > request.Limit;
 
