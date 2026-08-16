@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Anchor,
   Badge,
   Group,
   Loader,
@@ -11,8 +12,15 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import { IconAlertTriangle, IconBook, IconSearch, IconX } from '@tabler/icons-react'
-import { useDeferredValue, useMemo, useState } from 'react'
+import {
+  IconAlertTriangle,
+  IconBook,
+  IconChevronRight,
+  IconSearch,
+  IconX,
+} from '@tabler/icons-react'
+import { useDeferredValue, useMemo, useState, type MouseEvent } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { StatePanel } from '../../components/StatePanel'
 import { formatPublishedDate } from '../../lib/time'
 import { useBooks, type Book } from './useBooks'
@@ -27,13 +35,21 @@ function matchesQuery(book: Book, query: string): boolean {
 
 function BookRow({ book }: { book: Book }) {
   const published = formatPublishedDate(book.publishedDate)
+  const navigate = useNavigate()
+  const href = `/books/${book.id}`
+
+  const openUnlessLinkClicked = (event: MouseEvent<HTMLTableRowElement>) => {
+    if ((event.target as HTMLElement).closest('a') === null) {
+      void navigate(href)
+    }
+  }
 
   return (
-    <Table.Tr>
+    <Table.Tr style={{ cursor: 'pointer' }} onClick={openUnlessLinkClicked}>
       <Table.Td>
-        <Text fw={600} size="sm" lineClamp={1}>
+        <Anchor component={Link} to={href} fw={600} size="sm" lineClamp={1}>
           {book.title}
-        </Text>
+        </Anchor>
       </Table.Td>
 
       <Table.Td>
@@ -62,6 +78,10 @@ function BookRow({ book }: { book: Book }) {
         <Text size="sm" c={published === null ? 'dimmed' : undefined}>
           {published ?? '—'}
         </Text>
+      </Table.Td>
+
+      <Table.Td>
+        <IconChevronRight size={16} color="var(--mantine-color-dimmed)" />
       </Table.Td>
     </Table.Tr>
   )
@@ -177,6 +197,7 @@ export function BooksPage() {
                   <Table.Th>Description</Table.Th>
                   <Table.Th w="22%">Authors</Table.Th>
                   <Table.Th w={140}>Published</Table.Th>
+                  <Table.Th w={40} aria-label="Open book" />
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
