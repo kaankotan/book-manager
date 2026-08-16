@@ -1,0 +1,42 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" --ignore-path .prettierignore",
+    "generate:api": "openapi-typescript http://localhost:5138/swagger/v1/swagger.json -o src/api/schema.d.ts"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.5.1",
+    "@mantine/form": "^9.5.1",
+    "@mantine/hooks": "^9.5.1",
+    "@mantine/notifications": "^9.5.1",
+    "@microsoft/signalr": "^10.0.11",
+    "@tanstack/react-query": "^5.101.4",
+    "openapi-fetch": "^0.17.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.3.0"
+  },
+  "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.101.4",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "openapi-typescript": "^7.13.0",
+    "oxlint": "^1.75.0",
+    "postcss": "^8.5.26",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
+    "prettier": "^3.9.6",
+    "typescript": "~5.9",
+    "vite": "^8.2.0"
+  }
+}

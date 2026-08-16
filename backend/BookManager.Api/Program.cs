@@ -12,7 +12,9 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Without this, Swashbuckle ignores C# nullable annotations and marks every property optional and nullable,
+// which makes the generated TypeScript client types useless.
+builder.Services.AddSwaggerGen(options => options.SupportNonNullableReferenceTypes());
 builder.Services.AddOpenApi();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
