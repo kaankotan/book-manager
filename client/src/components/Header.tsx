@@ -1,6 +1,7 @@
 import { Button, Group, Title } from '@mantine/core'
 import { Link, useLocation } from 'react-router'
 import { RealtimeStatusBadge } from '../realtime/RealtimeStatusBadge'
+import { NotificationBell } from './NotificationBell'
 
 const NAV_ITEMS = [
   { to: '/books', label: 'Books' },
@@ -30,7 +31,10 @@ export function Header() {
         </Group>
       </Group>
 
-      <RealtimeStatusBadge />
+      <Group gap="sm">
+        <NotificationBell />
+        <RealtimeStatusBadge />
+      </Group>
     </Group>
   )
 }
