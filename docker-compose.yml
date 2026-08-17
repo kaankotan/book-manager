@@ -27,6 +27,19 @@ services:
         condition: service_healthy
     restart: 'no'
 
+  seeder:
+    image: postgres:17-alpine
+    environment:
+      PGPASSWORD: postgres
+    volumes:
+      - ./docker/seed-authors.sql:/seed/seed-authors.sql:ro
+    command:
+      ['psql', '-h', 'postgres', '-U', 'postgres', '-d', 'bookmanager', '-v', 'ON_ERROR_STOP=1', '-f', '/seed/seed-authors.sql']
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    restart: 'no'
+
   api:
     build:
       context: ./backend
@@ -41,6 +54,8 @@ services:
       postgres:
         condition: service_healthy
       migrator:
+        condition: service_completed_successfully
+      seeder:
         condition: service_completed_successfully
 
   client:
