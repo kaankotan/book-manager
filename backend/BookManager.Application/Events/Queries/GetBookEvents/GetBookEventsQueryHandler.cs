@@ -18,7 +18,7 @@ public class GetBookEventsQueryHandler : IRequestHandler<GetBookEventsQuery, Boo
 
     public async Task<BookEventPageDto> Handle(GetBookEventsQuery request, CancellationToken cancellationToken)
     {
-        var totalCount = await _bookEventRepository.CountAsync(request.BookId, cancellationToken);
+        var totalCount = await _bookEventRepository.CountAsync(request.BookIds, request.ChangeTypes, cancellationToken);
 
         var skip = (long)(request.Page - 1) * request.PageSize;
 
@@ -27,7 +27,15 @@ public class GetBookEventsQueryHandler : IRequestHandler<GetBookEventsQuery, Boo
             return new BookEventPageDto([], request.Page, request.PageSize, totalCount);
         }
 
-        var events = await _bookEventRepository.ListAsync(request.BookId, (int)skip, request.PageSize, cancellationToken);
+        var events = await _bookEventRepository.ListAsync(
+            request.BookIds,
+            request.ChangeTypes,
+            (int)skip,
+            request.PageSize,
+            request.SortBy,
+            request.Descending,
+            cancellationToken
+        );
 
         var items = _mapper.Map<List<BookEventDto>>(events.ToList());
 

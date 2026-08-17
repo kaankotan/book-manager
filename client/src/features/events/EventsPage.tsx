@@ -1,8 +1,10 @@
 import {
   Anchor,
   Badge,
+  Button,
   Group,
   Loader,
+  MultiSelect,
   Pagination,
   Paper,
   Skeleton,
@@ -11,19 +13,77 @@ import {
   Text,
   Title,
   Tooltip,
+  UnstyledButton,
 } from '@mantine/core'
-import { IconAlertTriangle, IconHistory } from '@tabler/icons-react'
-import { useState } from 'react'
+import {
+  IconAlertTriangle,
+  IconChevronDown,
+  IconChevronUp,
+  IconFilterOff,
+  IconHistory,
+  IconSelector,
+} from '@tabler/icons-react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { StatePanel } from '../../components/StatePanel'
-import { useBookTitles } from '../books/useBooks'
+import { useBooks, useBookTitles } from '../books/useBooks'
 import { formatAbsoluteTime, formatClockTime, formatRelativeTime, useNow } from '../../lib/time'
 import { changeTypeAppearance } from './changeType'
-import { EVENTS_PAGE_SIZE, useBookEvents, type BookEvent } from './useBookEvents'
+import {
+  DEFAULT_EVENTS_SORT,
+  EVENTS_PAGE_SIZE,
+  useBookEvents,
+  type BookChangeType,
+  type BookEvent,
+  type BookEventSort,
+  type BookEventSortField,
+} from './useBookEvents'
 
 const CLOCK_TICK_MS = 30_000
 
 const SKELETON_ROW_COUNT = 6
+
+const DESCENDING_FIRST: Record<BookEventSortField, boolean> = {
+  OccurredAt: true,
+  BookTitle: false,
+}
+
+const CHANGE_TYPES: BookChangeType[] = ['Created', 'TitleChanged', 'DescriptionChanged']
+
+const CHANGE_TYPE_OPTIONS = CHANGE_TYPES.map((value) => ({
+  value,
+  label: changeTypeAppearance(value).label,
+}))
+
+function SortableTh({
+  field,
+  label,
+  width,
+  sort,
+  onSort,
+}: {
+  field: BookEventSortField
+  label: string
+  width?: string | number
+  sort: BookEventSort
+  onSort: (field: BookEventSortField) => void
+}) {
+  const active = sort.field === field
+  const Icon = active ? (sort.descending ? IconChevronDown : IconChevronUp) : IconSelector
+
+  return (
+    <Table.Th w={width} aria-sort={active ? (sort.descending ? 'descending' : 'ascending') : 'none'}>
+      <UnstyledButton onClick={() => onSort(field)} w="100%" aria-label={`Sort by ${label}`}>
+        <Group gap={6} wrap="nowrap" justify="space-between">
+          <Text fz="sm" fw={700}>
+            {label}
+          </Text>
+          <Icon size={14} opacity={active ? 1 : 0.4} style={{ flexShrink: 0 }} />
+        </Group>
+      </UnstyledButton>
+    </Table.Th>
+  )
+}
 
 function EventRow({
   event,
@@ -90,9 +150,23 @@ function EventsSkeleton() {
 
 export function EventsPage() {
   const [page, setPage] = useState(1)
-  const { data, isPending, isPlaceholderData, isError, error, refetch } = useBookEvents(page)
+  const [sort, setSort] = useState<BookEventSort>(DEFAULT_EVENTS_SORT)
+  const [changeTypes, setChangeTypes] = useState<BookChangeType[]>([])
+  const [bookIds, setBookIds] = useState<string[]>([])
+  const { data, isPending, isPlaceholderData, isError, error, refetch } = useBookEvents(
+    page,
+    sort,
+    changeTypes,
+    bookIds,
+  )
   const bookTitles = useBookTitles()
+  const { data: books } = useBooks()
   const now = useNow(CLOCK_TICK_MS)
+
+  const bookOptions = useMemo(
+    () => (books ?? []).map((book) => ({ value: book.id, label: book.title })),
+    [books],
+  )
 
   if (isError) {
     return (
@@ -112,10 +186,40 @@ export function EventsPage() {
   const firstShown = (page - 1) * EVENTS_PAGE_SIZE + 1
   const lastShown = firstShown + events.length - 1
 
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
   const goToPage = (next: number) => {
     setPage(next)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollToTop()
   }
+
+  const toggleSort = (field: BookEventSortField) => {
+    setSort((current) =>
+      current.field === field
+        ? { field, descending: !current.descending }
+        : { field, descending: DESCENDING_FIRST[field] },
+    )
+    setPage(1)
+    scrollToTop()
+  }
+
+  const applyChangeTypes = (selected: string[]) => {
+    setChangeTypes(selected as BookChangeType[])
+    setPage(1)
+  }
+
+  const applyBooks = (selected: string[]) => {
+    setBookIds(selected)
+    setPage(1)
+  }
+
+  const clearFilters = () => {
+    setChangeTypes([])
+    setBookIds([])
+    setPage(1)
+  }
+
+  const isFiltered = changeTypes.length > 0 || bookIds.length > 0
 
   return (
     <Stack gap="lg">
@@ -125,18 +229,55 @@ export function EventsPage() {
           {isPlaceholderData && <Loader size="xs" />}
         </Group>
         <Text size="sm" c="dimmed">
-          Every change to the catalogue, newest first.
+          Every change to the catalogue. Sort by book or time.
         </Text>
       </Stack>
+
+      <Group gap="sm" align="flex-end" wrap="wrap">
+        <MultiSelect
+          data={bookOptions}
+          value={bookIds}
+          onChange={applyBooks}
+          placeholder={bookIds.length > 0 ? undefined : 'All books'}
+          aria-label="Filter by book"
+          searchable
+          nothingFoundMessage="No books match"
+          w={{ base: '100%', sm: 320 }}
+        />
+
+        <MultiSelect
+          data={CHANGE_TYPE_OPTIONS}
+          value={changeTypes}
+          onChange={applyChangeTypes}
+          placeholder={changeTypes.length > 0 ? undefined : 'All change types'}
+          aria-label="Filter by change type"
+          w={{ base: '100%', sm: 280 }}
+        />
+
+        {isFiltered && (
+          <Button variant="subtle" color="gray" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        )}
+      </Group>
 
       {isPending ? (
         <EventsSkeleton />
       ) : totalCount === 0 ? (
-        <StatePanel
-          icon={IconHistory}
-          title="Nothing has happened yet"
-          description="When a book is created or edited, it will show up here instantly."
-        />
+        isFiltered ? (
+          <StatePanel
+            icon={IconFilterOff}
+            title="No matching changes"
+            description="No activity matches the selected filters."
+            action={{ label: 'Clear filters', onClick: clearFilters }}
+          />
+        ) : (
+          <StatePanel
+            icon={IconHistory}
+            title="Nothing has happened yet"
+            description="When a book is created or edited, it will show up here instantly."
+          />
+        )
       ) : (
         <>
           <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
@@ -145,9 +286,21 @@ export function EventsPage() {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th w={190}>Change</Table.Th>
-                    <Table.Th w="26%">Book</Table.Th>
+                    <SortableTh
+                      field="BookTitle"
+                      label="Book"
+                      width="26%"
+                      sort={sort}
+                      onSort={toggleSort}
+                    />
                     <Table.Th>Details</Table.Th>
-                    <Table.Th w={150}>When</Table.Th>
+                    <SortableTh
+                      field="OccurredAt"
+                      label="When"
+                      width={150}
+                      sort={sort}
+                      onSort={toggleSort}
+                    />
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -166,7 +319,7 @@ export function EventsPage() {
 
           <Group justify="space-between" align="center" wrap="wrap" gap="sm" pb="xl">
             <Text size="sm" c="dimmed">
-              {`Showing ${firstShown}–${lastShown} of ${totalCount} ${totalCount === 1 ? 'change' : 'changes'}`}
+              {`Showing ${firstShown}–${lastShown} of ${totalCount} ${isFiltered ? 'matching ' : ''}${totalCount === 1 ? 'change' : 'changes'}`}
             </Text>
 
             {totalPages > 1 && (

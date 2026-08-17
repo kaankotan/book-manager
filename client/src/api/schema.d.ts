@@ -331,8 +331,12 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    bookIds?: string[];
+                    changeTypes?: components["schemas"]["BookChangeType"][];
                     page?: number;
                     pageSize?: number;
+                    sortBy?: components["schemas"]["BookEventSortField"];
+                    descending?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -371,8 +375,11 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    changeTypes?: components["schemas"]["BookChangeType"][];
                     page?: number;
                     pageSize?: number;
+                    sortBy?: components["schemas"]["BookEventSortField"];
+                    descending?: boolean;
                 };
                 header?: never;
                 path: {
@@ -422,6 +429,8 @@ export interface components {
             id: string;
             name: string;
         };
+        /** @enum {string} */
+        BookChangeType: "Created" | "TitleChanged" | "DescriptionChanged";
         BookDto: {
             /** Format: uuid */
             id: string;
@@ -450,6 +459,8 @@ export interface components {
             /** Format: int32 */
             totalCount: number;
         };
+        /** @enum {string} */
+        BookEventSortField: "OccurredAt" | "BookTitle";
         MarkBookViewedCommand: {
             /** Format: uuid */
             bookId: string;
