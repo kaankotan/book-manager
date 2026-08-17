@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react'
 
 const RELATIVE_FORMATTER = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
 
-const DAY_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-})
-
 const CLOCK_FORMATTER = new Intl.DateTimeFormat(undefined, {
   hour: '2-digit',
   minute: '2-digit',
@@ -59,34 +53,6 @@ export function formatClockTime(value: string): string {
   const date = parse(value)
 
   return date === null ? value : CLOCK_FORMATTER.format(date)
-}
-
-export function dayKey(value: string): string {
-  const date = parse(value)
-
-  return date === null ? value : date.toDateString()
-}
-
-export function formatDayLabel(value: string, now: number): string {
-  const date = parse(value)
-
-  if (date === null) {
-    return value
-  }
-
-  const today = new Date(now).toDateString()
-
-  if (date.toDateString() === today) {
-    return 'Today'
-  }
-
-  const yesterday = new Date(now - 86_400_000).toDateString()
-
-  if (date.toDateString() === yesterday) {
-    return 'Yesterday'
-  }
-
-  return DAY_FORMATTER.format(date)
 }
 
 export function formatPublishedDate(value: string): string | null {

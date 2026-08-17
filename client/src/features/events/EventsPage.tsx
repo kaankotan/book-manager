@@ -1,57 +1,29 @@
 import {
-  Box,
-  Button,
-  Center,
+  Anchor,
+  Badge,
   Group,
+  Loader,
+  Pagination,
   Paper,
   Skeleton,
   Stack,
+  Table,
   Text,
-  ThemeIcon,
   Title,
   Tooltip,
 } from '@mantine/core'
 import { IconAlertTriangle, IconHistory } from '@tabler/icons-react'
-import { useMemo } from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router'
 import { StatePanel } from '../../components/StatePanel'
 import { useBookTitles } from '../books/useBooks'
-import {
-  dayKey,
-  formatAbsoluteTime,
-  formatClockTime,
-  formatDayLabel,
-  formatRelativeTime,
-  useNow,
-} from '../../lib/time'
+import { formatAbsoluteTime, formatClockTime, formatRelativeTime, useNow } from '../../lib/time'
 import { changeTypeAppearance } from './changeType'
-import { useBookEvents, type BookEvent } from './useBookEvents'
+import { EVENTS_PAGE_SIZE, useBookEvents, type BookEvent } from './useBookEvents'
 
 const CLOCK_TICK_MS = 30_000
 
 const SKELETON_ROW_COUNT = 6
-
-type DayGroup = {
-  key: string
-  sample: string
-  items: BookEvent[]
-}
-
-function groupByDay(events: BookEvent[]): DayGroup[] {
-  const groups: DayGroup[] = []
-
-  for (const event of events) {
-    const key = dayKey(event.occurredAt)
-    const current = groups.at(-1)
-
-    if (current?.key === key) {
-      current.items.push(event)
-    } else {
-      groups.push({ key, sample: event.occurredAt, items: [event] })
-    }
-  }
-
-  return groups
-}
 
 function EventRow({
   event,
@@ -65,47 +37,44 @@ function EventRow({
   const { label, color, icon: Icon } = changeTypeAppearance(event.changeType)
 
   return (
-    <Group
-      className="event-row"
-      align="flex-start"
-      wrap="nowrap"
-      gap="md"
-      px="md"
-      py="sm"
-      style={{ transition: 'background 120ms ease' }}
-    >
-      <ThemeIcon variant="light" color={color} size={34} radius="xl" mt={2}>
-        <Icon size={17} />
-      </ThemeIcon>
+    <Table.Tr>
+      <Table.Td>
+        <Badge variant="light" color={color} size="sm" leftSection={<Icon size={12} />}>
+          {label}
+        </Badge>
+      </Table.Td>
 
-      <Box style={{ flex: 1, minWidth: 0 }}>
-        <Group gap={8} wrap="nowrap">
-          <Text size="sm" fw={600} c={`${color}.7`}>
-            {label}
-          </Text>
-          <Text size="sm" c="dimmed" lineClamp={1}>
-            {bookTitle ?? `Book ${event.bookId.slice(0, 8)}`}
-          </Text>
-        </Group>
+      <Table.Td>
+        <Anchor component={Link} to={`/books/${event.bookId}`} fw={600} size="sm" lineClamp={1}>
+          {bookTitle ?? `Book ${event.bookId.slice(0, 8)}`}
+        </Anchor>
+      </Table.Td>
 
-        {event.newValue !== null && event.newValue !== undefined && (
-          <Text size="sm" c="dimmed" lineClamp={2} mt={2}>
+      <Table.Td>
+        {event.newValue !== null && event.newValue !== undefined ? (
+          <Text size="sm" c="dimmed" lineClamp={2}>
             {event.newValue}
           </Text>
+        ) : (
+          <Text size="sm" c="dimmed">
+            —
+          </Text>
         )}
-      </Box>
+      </Table.Td>
 
-      <Tooltip label={formatAbsoluteTime(event.occurredAt)} position="left">
-        <Stack gap={0} align="flex-end" style={{ cursor: 'default', flexShrink: 0 }}>
-          <Text size="xs" c="dimmed" fw={500}>
-            {formatRelativeTime(event.occurredAt, now)}
-          </Text>
-          <Text fz={10} c="dimmed">
-            {formatClockTime(event.occurredAt)}
-          </Text>
-        </Stack>
-      </Tooltip>
-    </Group>
+      <Table.Td>
+        <Tooltip label={formatAbsoluteTime(event.occurredAt)} position="left">
+          <Stack gap={0} style={{ cursor: 'default' }}>
+            <Text size="sm" fw={500}>
+              {formatRelativeTime(event.occurredAt, now)}
+            </Text>
+            <Text fz={10} c="dimmed">
+              {formatClockTime(event.occurredAt)}
+            </Text>
+          </Stack>
+        </Tooltip>
+      </Table.Td>
+    </Table.Tr>
   )
 }
 
@@ -113,28 +82,17 @@ function EventsSkeleton() {
   return (
     <Stack gap="sm">
       {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
-        <Skeleton key={index} height={56} radius="md" />
+        <Skeleton key={index} height={48} radius="md" />
       ))}
     </Stack>
   )
 }
 
 export function EventsPage() {
-  const {
-    data,
-    isPending,
-    isError,
-    error,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useBookEvents()
+  const [page, setPage] = useState(1)
+  const { data, isPending, isPlaceholderData, isError, error, refetch } = useBookEvents(page)
   const bookTitles = useBookTitles()
   const now = useNow(CLOCK_TICK_MS)
-
-  const events = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data])
-  const groups = useMemo(() => groupByDay(events), [events])
 
   if (isError) {
     return (
@@ -148,10 +106,24 @@ export function EventsPage() {
     )
   }
 
+  const events = data?.items ?? []
+  const totalCount = data?.totalCount ?? 0
+  const totalPages = Math.ceil(totalCount / EVENTS_PAGE_SIZE)
+  const firstShown = (page - 1) * EVENTS_PAGE_SIZE + 1
+  const lastShown = firstShown + events.length - 1
+
+  const goToPage = (next: number) => {
+    setPage(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <Stack gap="lg">
       <Stack gap={2}>
-        <Title order={2}>Activity</Title>
+        <Group gap="sm" align="center">
+          <Title order={2}>Activity</Title>
+          {isPlaceholderData && <Loader size="xs" />}
+        </Group>
         <Text size="sm" c="dimmed">
           Every change to the catalogue, newest first.
         </Text>
@@ -159,7 +131,7 @@ export function EventsPage() {
 
       {isPending ? (
         <EventsSkeleton />
-      ) : events.length === 0 ? (
+      ) : totalCount === 0 ? (
         <StatePanel
           icon={IconHistory}
           title="Nothing has happened yet"
@@ -167,44 +139,40 @@ export function EventsPage() {
         />
       ) : (
         <>
-          <Stack gap="lg">
-            {groups.map((group) => (
-              <Stack key={group.key} gap={6}>
-                <Text className="day-heading" size="xs" fw={700} c="dimmed" tt="uppercase" py={4}>
-                  {formatDayLabel(group.sample, now)}
-                </Text>
+          <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
+            <Table.ScrollContainer minWidth={720}>
+              <Table striped highlightOnHover stickyHeader verticalSpacing="md">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th w={190}>Change</Table.Th>
+                    <Table.Th w="26%">Book</Table.Th>
+                    <Table.Th>Details</Table.Th>
+                    <Table.Th w={150}>When</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {events.map((event) => (
+                    <EventRow
+                      key={event.id}
+                      event={event}
+                      bookTitle={bookTitles.get(event.bookId)}
+                      now={now}
+                    />
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Table.ScrollContainer>
+          </Paper>
 
-                <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
-                  <Stack gap={0}>
-                    {group.items.map((event) => (
-                      <EventRow
-                        key={event.id}
-                        event={event}
-                        bookTitle={bookTitles.get(event.bookId)}
-                        now={now}
-                      />
-                    ))}
-                  </Stack>
-                </Paper>
-              </Stack>
-            ))}
-          </Stack>
+          <Group justify="space-between" align="center" wrap="wrap" gap="sm" pb="xl">
+            <Text size="sm" c="dimmed">
+              {`Showing ${firstShown}–${lastShown} of ${totalCount} ${totalCount === 1 ? 'change' : 'changes'}`}
+            </Text>
 
-          <Center pb="xl">
-            {hasNextPage ? (
-              <Button
-                variant="default"
-                onClick={() => void fetchNextPage()}
-                loading={isFetchingNextPage}
-              >
-                Load older
-              </Button>
-            ) : (
-              <Text size="sm" c="dimmed">
-                That is the whole history.
-              </Text>
+            {totalPages > 1 && (
+              <Pagination value={page} onChange={goToPage} total={totalPages} withEdges />
             )}
-          </Center>
+          </Group>
         </>
       )}
     </Stack>

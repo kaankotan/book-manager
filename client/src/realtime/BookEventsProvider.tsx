@@ -7,15 +7,11 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { booksQueryKey, type Book } from '../features/books/useBooks'
 import { changeTypeAppearance } from '../features/events/changeType'
-import {
-  eventsQueryKey,
-  type BookEvent,
-  type BookEventPage,
-} from '../features/events/useBookEvents'
+import { eventsQueryKey, type BookEvent } from '../features/events/useBookEvents'
 import { BOOK_EVENT_CREATED, createBookEventsConnection } from './connection'
 
 export type RealtimeStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
@@ -27,8 +23,6 @@ export type NotificationInbox = {
 }
 
 type InboxState = Omit<NotificationInbox, 'markAllRead'>
-
-type EventsCache = InfiniteData<BookEventPage, number | null>
 
 const MAX_BUFFERED_NOTIFICATIONS = 20
 
@@ -77,28 +71,6 @@ function createSeenEventLog() {
   }
 }
 
-function alreadyContainsEvent(cache: EventsCache, eventId: number): boolean {
-  return cache.pages.some((page) => page.items.some((item) => item.id === eventId))
-}
-
-function withEventPrepended(
-  cache: EventsCache | undefined,
-  event: BookEvent,
-): EventsCache | undefined {
-  const feedNotLoadedYet = !cache || cache.pages.length === 0
-
-  if (feedNotLoadedYet || alreadyContainsEvent(cache, event.id)) {
-    return cache
-  }
-
-  const [newestPage, ...olderPages] = cache.pages
-
-  return {
-    ...cache,
-    pages: [{ ...newestPage, items: [event, ...newestPage.items] }, ...olderPages],
-  }
-}
-
 function withEventBuffered(current: InboxState, event: BookEvent): InboxState {
   return {
     items: [event, ...current.items].slice(0, MAX_BUFFERED_NOTIFICATIONS),
@@ -129,10 +101,7 @@ export function BookEventsProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      queryClient.setQueryData<EventsCache>(eventsQueryKey, (cache) =>
-        withEventPrepended(cache, event),
-      )
-
+      void queryClient.invalidateQueries({ queryKey: eventsQueryKey })
       void queryClient.invalidateQueries({ queryKey: booksQueryKey })
 
       setInbox((current) => withEventBuffered(current, event))

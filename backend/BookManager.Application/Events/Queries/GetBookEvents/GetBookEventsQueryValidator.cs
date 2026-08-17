@@ -6,10 +6,8 @@ public class GetBookEventsQueryValidator : AbstractValidator<GetBookEventsQuery>
 {
     public GetBookEventsQueryValidator()
     {
-        RuleFor(query => query.Limit).InclusiveBetween(1, 100);
+        RuleFor(query => query.Page).GreaterThan(0);
 
-        RuleFor(query => query.Before).GreaterThan(0).When(query => query.Before is not null);
-
-        RuleFor(query => query.Since).GreaterThan(0).When(query => query.Since is not null);
+        RuleFor(query => query.PageSize).InclusiveBetween(1, 100);
     }
 }

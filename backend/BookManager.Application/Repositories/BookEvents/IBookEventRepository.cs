@@ -12,5 +12,9 @@ public interface IBookEventRepository
         CancellationToken cancellationToken = default
     );
 
+    Task<IReadOnlyList<BookEvent>> ListAsync(Guid? bookId, int skip, int take, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(Guid? bookId, CancellationToken cancellationToken = default);
+
     Task<long?> GetLatestIdAsync(Guid bookId, CancellationToken cancellationToken = default);
 }

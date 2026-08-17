@@ -331,9 +331,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    before?: number;
-                    since?: number;
-                    limit?: number;
+                    page?: number;
+                    pageSize?: number;
                 };
                 header?: never;
                 path?: never;
@@ -372,9 +371,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    before?: number;
-                    since?: number;
-                    limit?: number;
+                    page?: number;
+                    pageSize?: number;
                 };
                 header?: never;
                 path: {
@@ -445,8 +443,12 @@ export interface components {
         };
         BookEventPageDto: {
             items: components["schemas"]["BookEventDto"][];
-            /** Format: int64 */
-            nextCursor?: number | null;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalCount: number;
         };
         MarkBookViewedCommand: {
             /** Format: uuid */

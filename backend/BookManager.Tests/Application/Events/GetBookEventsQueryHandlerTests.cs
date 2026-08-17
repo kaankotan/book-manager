@@ -17,67 +17,83 @@ public class GetBookEventsQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenAFullPagePlusOneComesBack_TrimsToTheLimit()
+    public async Task Handle_ReturnsTheRequestedPageAlongsideTheTotal()
     {
-        // The repository over-fetches by one so the handler can tell whether another page exists.
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(7);
         _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([BookEventFactory.WithId(30), BookEventFactory.WithId(20), BookEventFactory.WithId(10)]);
-
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 2), CancellationToken.None);
-
-        Assert.Equal([30L, 20L], result.Items.Select(item => item.Id));
-    }
-
-    [Fact]
-    public async Task Handle_WhenAnotherPageExists_ReturnsTheLastReturnedIdAsTheCursor()
-    {
-        _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([BookEventFactory.WithId(30), BookEventFactory.WithId(20), BookEventFactory.WithId(10)]);
-
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 2), CancellationToken.None);
-
-        Assert.Equal(20L, result.NextCursor);
-    }
-
-    [Fact]
-    public async Task Handle_OnTheLastPage_ReturnsNoCursor()
-    {
-        _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ListAsync(Arg.Any<Guid?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([BookEventFactory.WithId(30), BookEventFactory.WithId(20)]);
 
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 2), CancellationToken.None);
+        var result = await _handler.Handle(new GetBookEventsQuery(null, 2, 2), CancellationToken.None);
 
         Assert.Equal([30L, 20L], result.Items.Select(item => item.Id));
-        Assert.Null(result.NextCursor);
+        Assert.Equal(2, result.Page);
+        Assert.Equal(2, result.PageSize);
+        Assert.Equal(7, result.TotalCount);
+    }
+
+    [Theory]
+    [InlineData(1, 0)]
+    [InlineData(2, 25)]
+    [InlineData(4, 75)]
+    public async Task Handle_TranslatesThePageNumberIntoASkip(int page, int expectedSkip)
+    {
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(500);
+        _bookEventRepository.ListAsync(Arg.Any<Guid?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([]);
+
+        await _handler.Handle(new GetBookEventsQuery(null, page, 25), CancellationToken.None);
+
+        await _bookEventRepository.Received(1).ListAsync(null, expectedSkip, 25, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_WithAPartialPage_ReturnsNoCursor()
+    public async Task Handle_ForwardsTheBookFilterAndToken()
     {
-        _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([BookEventFactory.WithId(30)]);
+        using var cts = new CancellationTokenSource();
+        var bookId = Guid.NewGuid();
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(10);
+        _bookEventRepository.ListAsync(Arg.Any<Guid?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([]);
 
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 2), CancellationToken.None);
+        await _handler.Handle(new GetBookEventsQuery(bookId, 1, 25), cts.Token);
 
-        Assert.Single(result.Items);
-        Assert.Null(result.NextCursor);
+        await _bookEventRepository.Received(1).CountAsync(bookId, cts.Token);
+        await _bookEventRepository.Received(1).ListAsync(bookId, 0, 25, cts.Token);
+    }
+
+    [Fact]
+    public async Task Handle_WhenThePageStartsPastTheEnd_ReturnsAnEmptyPageWithoutQueryingRows()
+    {
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(30);
+
+        var result = await _handler.Handle(new GetBookEventsQuery(null, 4, 10), CancellationToken.None);
+
+        Assert.Empty(result.Items);
+        Assert.Equal(30, result.TotalCount);
+        await _bookEventRepository
+            .DidNotReceive()
+            .ListAsync(Arg.Any<Guid?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WithAPageNumberLargeEnoughToOverflowASkip_StillReturnsAnEmptyPage()
+    {
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(30);
+
+        var result = await _handler.Handle(new GetBookEventsQuery(null, int.MaxValue, 100), CancellationToken.None);
+
+        Assert.Empty(result.Items);
+        Assert.Equal(30, result.TotalCount);
     }
 
     [Fact]
     public async Task Handle_WithNoEvents_ReturnsAnEmptyPage()
     {
-        _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([]);
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(0);
 
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 2), CancellationToken.None);
+        var result = await _handler.Handle(new GetBookEventsQuery(null, 1, 25), CancellationToken.None);
 
         Assert.Empty(result.Items);
-        Assert.Null(result.NextCursor);
+        Assert.Equal(0, result.TotalCount);
     }
 
     [Fact]
@@ -85,11 +101,12 @@ public class GetBookEventsQueryHandlerTests
     {
         var bookId = Guid.NewGuid();
         var occurredAt = new DateTimeOffset(2024, 5, 1, 12, 0, 0, TimeSpan.Zero);
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(1);
         _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ListAsync(Arg.Any<Guid?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([BookEventFactory.WithId(7, bookId, BookChangeType.TitleChanged, "Dune Messiah", occurredAt)]);
 
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 10), CancellationToken.None);
+        var result = await _handler.Handle(new GetBookEventsQuery(null, 1, 10), CancellationToken.None);
 
         var item = Assert.Single(result.Items);
         Assert.Equal(7L, item.Id);
@@ -102,38 +119,13 @@ public class GetBookEventsQueryHandlerTests
     [Fact]
     public async Task Handle_MapsANullNewValue()
     {
+        _bookEventRepository.CountAsync(Arg.Any<Guid?>(), Arg.Any<CancellationToken>()).Returns(1);
         _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ListAsync(Arg.Any<Guid?>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([BookEventFactory.WithId(7, newValue: null)]);
 
-        var result = await _handler.Handle(new GetBookEventsQuery(null, null, null, 10), CancellationToken.None);
+        var result = await _handler.Handle(new GetBookEventsQuery(null, 1, 10), CancellationToken.None);
 
         Assert.Null(Assert.Single(result.Items).NewValue);
-    }
-
-    [Fact]
-    public async Task Handle_ForwardsTheFilterCursorLimitAndToken()
-    {
-        using var cts = new CancellationTokenSource();
-        var bookId = Guid.NewGuid();
-        _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-
-        await _handler.Handle(new GetBookEventsQuery(bookId, 99, null, 25), cts.Token);
-
-        await _bookEventRepository.Received(1).GetPageAsync(bookId, 99, null, 25, cts.Token);
-    }
-
-    [Fact]
-    public async Task Handle_ForwardsTheSinceCursor()
-    {
-        _bookEventRepository
-            .GetPageAsync(Arg.Any<Guid?>(), Arg.Any<long?>(), Arg.Any<long?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-
-        await _handler.Handle(new GetBookEventsQuery(null, null, 42, 25), CancellationToken.None);
-
-        await _bookEventRepository.Received(1).GetPageAsync(null, null, 42L, 25, Arg.Any<CancellationToken>());
     }
 }

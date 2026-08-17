@@ -8,7 +8,7 @@ namespace BookManager.Api.Controllers;
 [ApiController]
 public class EventsController : ControllerBase
 {
-    private const int DefaultLimit = 50;
+    private const int DefaultPageSize = 50;
 
     private readonly ISender _sender;
 
@@ -19,13 +19,12 @@ public class EventsController : ControllerBase
 
     [HttpGet("/api/events")]
     public async Task<ActionResult<BookEventPageDto>> GetAll(
-        [FromQuery] long? before,
-        [FromQuery] long? since,
-        [FromQuery] int limit = DefaultLimit,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = DefaultPageSize,
         CancellationToken cancellationToken = default
     )
     {
-        var events = await _sender.Send(new GetBookEventsQuery(null, before, since, limit), cancellationToken);
+        var events = await _sender.Send(new GetBookEventsQuery(null, page, pageSize), cancellationToken);
 
         return Ok(events);
     }
@@ -33,13 +32,12 @@ public class EventsController : ControllerBase
     [HttpGet("/api/books/{bookId:guid}/events")]
     public async Task<ActionResult<BookEventPageDto>> GetByBook(
         Guid bookId,
-        [FromQuery] long? before,
-        [FromQuery] long? since,
-        [FromQuery] int limit = DefaultLimit,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = DefaultPageSize,
         CancellationToken cancellationToken = default
     )
     {
-        var events = await _sender.Send(new GetBookEventsQuery(bookId, before, since, limit), cancellationToken);
+        var events = await _sender.Send(new GetBookEventsQuery(bookId, page, pageSize), cancellationToken);
 
         return Ok(events);
     }

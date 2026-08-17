@@ -13,13 +13,3 @@ body {
   background: color-mix(in srgb, var(--mantine-color-body) 82%, transparent);
 }
 
-.day-heading {
-  position: sticky;
-  top: var(--app-shell-header-offset, 60px);
-  z-index: 1;
-  background: var(--mantine-color-body);
-}
-
-.event-row:hover {
-  background: var(--mantine-color-default-hover);
-}

@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { api, unwrap } from '../../api/client'
 import type { components } from '../../api/schema'
 
@@ -7,19 +7,18 @@ export type BookEventPage = components['schemas']['BookEventPageDto']
 
 export const eventsQueryKey = ['events'] as const
 
-const PAGE_SIZE = 50
+export const EVENTS_PAGE_SIZE = 25
 
-export function useBookEvents() {
-  return useInfiniteQuery({
-    queryKey: eventsQueryKey,
-    initialPageParam: null as number | null,
-    queryFn: ({ pageParam, signal }) =>
+export function useBookEvents(page: number) {
+  return useQuery({
+    queryKey: [...eventsQueryKey, page, EVENTS_PAGE_SIZE] as const,
+    queryFn: ({ signal }) =>
       unwrap(
         api.GET('/api/events', {
-          params: { query: { before: pageParam ?? undefined, limit: PAGE_SIZE } },
+          params: { query: { page, pageSize: EVENTS_PAGE_SIZE } },
           signal,
         }),
       ),
-    getNextPageParam: (lastPage: BookEventPage) => lastPage.nextCursor ?? undefined,
+    placeholderData: keepPreviousData,
   })
 }

@@ -22,12 +22,7 @@ public class BookEventRepository : IBookEventRepository
         CancellationToken cancellationToken = default
     )
     {
-        var query = _dbContext.BookEvents.AsNoTracking();
-
-        if (bookId is not null)
-        {
-            query = query.Where(bookEvent => bookEvent.BookId == bookId);
-        }
+        var query = ForBook(bookId);
 
         if (before is not null)
         {
@@ -43,13 +38,28 @@ public class BookEventRepository : IBookEventRepository
         return await query.OrderByDescending(bookEvent => bookEvent.Id).Take(limit + 1).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<BookEvent>> ListAsync(Guid? bookId, int skip, int take, CancellationToken cancellationToken = default)
+    {
+        return await ForBook(bookId).OrderByDescending(bookEvent => bookEvent.Id).Skip(skip).Take(take).ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(Guid? bookId, CancellationToken cancellationToken = default)
+    {
+        return await ForBook(bookId).CountAsync(cancellationToken);
+    }
+
     public async Task<long?> GetLatestIdAsync(Guid bookId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext
-            .BookEvents.AsNoTracking()
-            .Where(bookEvent => bookEvent.BookId == bookId)
+        return await ForBook(bookId)
             .OrderByDescending(bookEvent => bookEvent.Id)
             .Select(bookEvent => (long?)bookEvent.Id)
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private IQueryable<BookEvent> ForBook(Guid? bookId)
+    {
+        var query = _dbContext.BookEvents.AsNoTracking();
+
+        return bookId is null ? query : query.Where(bookEvent => bookEvent.BookId == bookId);
     }
 }
