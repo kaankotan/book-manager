@@ -8,7 +8,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder().AddUserSecrets<AppDbContextFactory>().Build();
+        var configuration = new ConfigurationBuilder().AddUserSecrets<AppDbContextFactory>().AddEnvironmentVariables().Build();
 
         var connectionString =
             configuration.GetConnectionString("DefaultConnection")

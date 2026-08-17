@@ -22,7 +22,43 @@ Changes are captured in the domain, not by comparing rows after the fact:
 
 The history is therefore a durable append-only log in PostgreSQL; SignalR is only the delivery mechanism on top of it.
 
-## Prerequisites
+## Quick start with Docker
+
+The only prerequisite is Docker Desktop, or Docker Engine with Compose v2. From the repository root:
+
+```bash
+docker compose up --build
+```
+
+That builds both images, starts PostgreSQL, applies the migrations, and serves the app:
+
+| | URL |
+| --- | --- |
+| Frontend | http://localhost:3000 |
+| API | http://localhost:5138 |
+| Swagger UI | http://localhost:5138/swagger |
+
+No .NET SDK, Node.js, PostgreSQL installation, or user secrets required — the containers receive the connection string as an environment variable.
+
+Migrations are applied by a dedicated one-shot `migrator` service rather than by the API itself. It waits for PostgreSQL to pass its healthcheck, runs `dotnet ef database update`, and exits; only then does the API start. The API never alters its own schema.
+
+Stop the stack:
+
+```bash
+docker compose down
+```
+
+Stop it and delete the database volume, for a clean slate:
+
+```bash
+docker compose down -v
+```
+
+PostgreSQL's port is deliberately not published, so it cannot collide with an instance you already run locally. Add a `ports` mapping to the `postgres` service in [docker-compose.yml](docker-compose.yml) if you want to connect to it directly.
+
+## Running locally without Docker
+
+### Prerequisites
 
 | Requirement | Version |
 | --- | --- |
@@ -30,8 +66,6 @@ The history is therefore a durable append-only log in PostgreSQL; SignalR is onl
 | Node.js | 20.19+ or 22.12+ (required by Vite 8) |
 | PostgreSQL | 14+ |
 | `dotnet-ef` | Install with `dotnet tool install --global dotnet-ef` |
-
-## Getting started
 
 ### 1. Start PostgreSQL
 
@@ -71,7 +105,7 @@ Then install dependencies:
 npm install --prefix client
 ```
 
-## Running
+### 5. Run
 
 Two processes, in separate terminals:
 
@@ -133,6 +167,7 @@ client/
   src/components/              Reusable UI (EditableText, StatePanel, Header, ...)
   src/features/                books, authors, events
   src/realtime/                SignalR connection, event provider, status badge
+docker-compose.yml             postgres -> migrator -> api -> client
 ```
 
 The frontend is organised by feature, with each feature owning its React Query hooks. Shared UI lives in `components/` and is presentation-only.
