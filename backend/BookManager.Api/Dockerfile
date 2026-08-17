@@ -21,5 +21,6 @@ ENTRYPOINT ["dotnet", "ef", "database", "update", "--project", "BookManager.Infr
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
+USER $APP_UID
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "BookManager.Api.dll"]
