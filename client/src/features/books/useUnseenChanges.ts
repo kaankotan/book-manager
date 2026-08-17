@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ApiError, api, unwrap } from '../../api/client'
-import { useNotificationInbox } from '../../realtime/BookEventsProvider'
 import type { components } from '../../api/schema'
 
 export type UnseenBookChanges = components['schemas']['UnseenBookChangesDto']
@@ -23,6 +22,7 @@ export function useUnseenChanges(bookId: string) {
         }),
       ),
     staleTime: 0,
+    gcTime: 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
@@ -60,23 +60,8 @@ export function useMarkBookSeen(bookId: string) {
 export function useUnseenChangesAnnouncement(bookId: string) {
   const { data } = useUnseenChanges(bookId)
   const markSeen = useMarkBookSeen(bookId)
-  const { items: notifications } = useNotificationInbox()
   const [opened, setOpened] = useState(false)
   const alreadyDecided = useRef(false)
-
-  const bufferedBeforeMount = useRef<Set<number> | null>(null)
-
-  if (bufferedBeforeMount.current === null) {
-    bufferedBeforeMount.current = new Set(notifications.map((event) => event.id))
-  }
-
-  const liveLatestEventId = useMemo(() => {
-    const arrivedWhileOpen = notifications.filter(
-      (event) => event.bookId === bookId && !bufferedBeforeMount.current!.has(event.id),
-    )
-
-    return arrivedWhileOpen.length > 0 ? Math.max(...arrivedWhileOpen.map((e) => e.id)) : null
-  }, [notifications, bookId])
 
   useEffect(() => {
     if (data === undefined || alreadyDecided.current) {
@@ -91,10 +76,6 @@ export function useUnseenChangesAnnouncement(bookId: string) {
 
     markSeen(data.latestEventId)
   }, [data, markSeen])
-
-  useEffect(() => {
-    markSeen(liveLatestEventId)
-  }, [liveLatestEventId, markSeen])
 
   const close = useCallback(() => setOpened(false), [])
 
