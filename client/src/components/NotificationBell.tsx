@@ -101,11 +101,11 @@ export function NotificationBell() {
           <Indicator
             color="red"
             size={16}
-            offset={-2}
+            offset={4}
             disabled={unreadCount === 0}
             label={unreadCount > MAX_DISPLAYED_COUNT ? `${MAX_DISPLAYED_COUNT}+` : unreadCount}
           >
-            <IconBell size={19} />
+            <IconBell size={24} />
           </Indicator>
         </ActionIcon>
       </Popover.Target>
@@ -155,7 +155,7 @@ export function NotificationBell() {
 
         <Group justify="center" py="xs">
           <Anchor component={Link} to="/events" size="sm" fw={500} onClick={() => setOpened(false)}>
-            View all activity
+            View all events
           </Anchor>
         </Group>
       </Popover.Dropdown>

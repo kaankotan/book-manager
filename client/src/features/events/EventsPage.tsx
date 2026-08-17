@@ -225,12 +225,9 @@ export function EventsPage() {
     <Stack gap="lg">
       <Stack gap={2}>
         <Group gap="sm" align="center">
-          <Title order={2}>Activity</Title>
+          <Title order={2}>Events</Title>
           {isPlaceholderData && <Loader size="xs" />}
         </Group>
-        <Text size="sm" c="dimmed">
-          Every change to the catalogue. Sort by book or time.
-        </Text>
       </Stack>
 
       <Group gap="sm" align="flex-end" wrap="wrap">

@@ -7,7 +7,7 @@ import { NotificationBell } from './NotificationBell'
 
 const NAV_ITEMS = [
   { to: '/books', label: 'Books' },
-  { to: '/events', label: 'Activity' },
+  { to: '/events', label: 'Events' },
 ]
 
 function NavLink({ to, label, active }: { to: string; label: string; active: boolean }) {
@@ -50,9 +50,6 @@ export function Header() {
             <Box>
               <Text fw={700} size="sm" lh={1.1} c="var(--mantine-color-text)">
                 Book Manager
-              </Text>
-              <Text fz={10} c="dimmed" lh={1.3} visibleFrom="sm">
-                Catalogue &amp; activity
               </Text>
             </Box>
           </Group>

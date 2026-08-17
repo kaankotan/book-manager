@@ -15,7 +15,7 @@ export function ColorSchemeToggle() {
         aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         onClick={() => setColorScheme(isDark ? 'light' : 'dark')}
       >
-        {isDark ? <IconSun size={19} /> : <IconMoon size={19} />}
+        {isDark ? <IconSun size={19} /> : <IconMoon size={24} />}
       </ActionIcon>
     </Tooltip>
   )
