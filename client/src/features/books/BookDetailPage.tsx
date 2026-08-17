@@ -19,10 +19,13 @@ import {
   IconUsers,
 } from '@tabler/icons-react'
 import { Link, useParams } from 'react-router'
+import { EditableText } from '../../components/EditableText'
 import { StatePanel } from '../../components/StatePanel'
 import { formatPublishedDate } from '../../lib/time'
+import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH, textFieldError } from './bookFields'
 import { UnseenChangesModal } from './UnseenChangesModal'
 import { isNotFound, useBook } from './useBook'
+import { useUpdateBook } from './useBookMutations'
 import { useUnseenChangesAnnouncement } from './useUnseenChanges'
 import type { Book } from './useBooks'
 
@@ -65,6 +68,7 @@ function MetaItem({
 function BookDetail({ book }: { book: Book }) {
   const published = formatPublishedDate(book.publishedDate)
   const unseenChanges = useUnseenChangesAnnouncement(book.id)
+  const { mutateAsync: updateBook } = useUpdateBook(book.id)
 
   return (
     <Stack gap="lg">
@@ -91,7 +95,14 @@ function BookDetail({ book }: { book: Book }) {
           </ThemeIcon>
 
           <Stack gap="md" style={{ flex: 1, minWidth: 0 }}>
-            <Title order={1}>{book.title}</Title>
+            <EditableText
+              value={book.title}
+              label="Title"
+              validate={(value) => textFieldError('Title', value, TITLE_MAX_LENGTH)}
+              onSave={(title) => updateBook({ title, description: book.description })}
+            >
+              <Title order={1}>{book.title}</Title>
+            </EditableText>
 
             <Group gap="xl" wrap="wrap">
               <MetaItem icon={IconUsers} label="Authors">
@@ -125,15 +136,23 @@ function BookDetail({ book }: { book: Book }) {
           Description
         </Text>
 
-        {book.description.trim().length > 0 ? (
-          <Text style={{ whiteSpace: 'pre-wrap' }} maw={680}>
-            {book.description}
-          </Text>
-        ) : (
-          <Text c="dimmed" fs="italic">
-            No description was provided for this book.
-          </Text>
-        )}
+        <EditableText
+          value={book.description}
+          label="Description"
+          multiline
+          validate={(value) => textFieldError('Description', value, DESCRIPTION_MAX_LENGTH)}
+          onSave={(description) => updateBook({ title: book.title, description })}
+        >
+          {book.description.trim().length > 0 ? (
+            <Text style={{ whiteSpace: 'pre-wrap' }} maw={680}>
+              {book.description}
+            </Text>
+          ) : (
+            <Text c="dimmed" fs="italic">
+              No description was provided for this book.
+            </Text>
+          )}
+        </EditableText>
       </Paper>
     </Stack>
   )

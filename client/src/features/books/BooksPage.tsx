@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Anchor,
   Badge,
+  Button,
   Group,
   Loader,
   Paper,
@@ -12,10 +13,12 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import {
   IconAlertTriangle,
   IconBook,
   IconChevronRight,
+  IconPlus,
   IconSearch,
   IconX,
 } from '@tabler/icons-react'
@@ -23,6 +26,7 @@ import { useDeferredValue, useMemo, useState, type MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { StatePanel } from '../../components/StatePanel'
 import { formatPublishedDate } from '../../lib/time'
+import { AddBookModal } from './AddBookModal'
 import { useBooks, type Book } from './useBooks'
 
 const SKELETON_ROW_COUNT = 5
@@ -101,6 +105,7 @@ export function BooksPage() {
   const { data: books, isPending, isError, error, isFetching, refetch } = useBooks()
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
+  const [addOpened, { open: openAdd, close: closeAdd }] = useDisclosure(false)
 
   const visibleBooks = useMemo(() => {
     const normalized = deferredQuery.trim().toLowerCase()
@@ -129,6 +134,8 @@ export function BooksPage() {
 
   return (
     <Stack gap="lg">
+      <AddBookModal opened={addOpened} onClose={closeAdd} />
+
       <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
         <Stack gap={2}>
           <Group gap="sm" align="center">
@@ -144,26 +151,32 @@ export function BooksPage() {
           </Text>
         </Stack>
 
-        <TextInput
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-          placeholder="Search titles, descriptions, authors"
-          aria-label="Search books"
-          leftSection={<IconSearch size={16} />}
-          rightSection={
-            query.length > 0 ? (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                onClick={() => setQuery('')}
-                aria-label="Clear search"
-              >
-                <IconX size={14} />
-              </ActionIcon>
-            ) : null
-          }
-          w={{ base: '100%', sm: 300 }}
-        />
+        <Group gap="sm" wrap="nowrap" w={{ base: '100%', sm: 'auto' }}>
+          <TextInput
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            placeholder="Search titles, descriptions, authors"
+            aria-label="Search books"
+            leftSection={<IconSearch size={16} />}
+            rightSection={
+              query.length > 0 ? (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  onClick={() => setQuery('')}
+                  aria-label="Clear search"
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              ) : null
+            }
+            w={{ base: '100%', sm: 300 }}
+          />
+
+          <Button leftSection={<IconPlus size={16} />} onClick={openAdd} style={{ flexShrink: 0 }}>
+            Add book
+          </Button>
+        </Group>
       </Group>
 
       {isPending ? (
@@ -173,6 +186,7 @@ export function BooksPage() {
           icon={IconBook}
           title="No books yet"
           description="Once a book is added it will show up here, and the change will appear in the activity feed."
+          action={{ label: 'Add the first book', onClick: openAdd }}
         />
       ) : visibleBooks.length === 0 ? (
         <StatePanel
