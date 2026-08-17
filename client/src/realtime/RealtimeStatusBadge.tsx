@@ -8,12 +8,12 @@ const APPEARANCE: Record<RealtimeStatus, { color: string; label: string; hint: s
     hint: 'Opening the live connection',
   },
   connected: {
-    color: 'var(--mantine-color-teal-6)',
+    color: 'var(--mantine-color-forest-5)',
     label: 'Live',
     hint: 'Changes appear here the moment they happen',
   },
   reconnecting: {
-    color: 'var(--mantine-color-yellow-6)',
+    color: 'var(--mantine-color-gold-4)',
     label: 'Reconnecting',
     hint: 'Connection dropped, trying again',
   },

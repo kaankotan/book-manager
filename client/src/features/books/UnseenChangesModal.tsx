@@ -10,7 +10,7 @@ function changeSummary(count: number): string {
 }
 
 function ChangeItem({ event, now }: { event: BookEvent; now: number }) {
-  const { label, color, icon: Icon } = changeTypeAppearance(event.changeType)
+  const { label, color, textColor, icon: Icon } = changeTypeAppearance(event.changeType)
 
   return (
     <Timeline.Item
@@ -21,7 +21,7 @@ function ChangeItem({ event, now }: { event: BookEvent; now: number }) {
       }
       title={
         <Group gap={8} justify="space-between" wrap="nowrap">
-          <Text size="sm" fw={600} c={`${color}.7`}>
+          <Text size="sm" fw={600} c={textColor}>
             {label}
           </Text>
 

@@ -6,13 +6,33 @@ type IconComponent = ComponentType<{ size?: number | string; stroke?: number }>
 export type ChangeTypeAppearance = {
   label: string
   color: string
+  textColor: string
   icon: IconComponent
 }
 
+function readableOn(color: string): string {
+  return `light-dark(var(--mantine-color-${color}-9), var(--mantine-color-${color}-3))`
+}
+
 const APPEARANCE: Record<string, ChangeTypeAppearance> = {
-  Created: { label: 'Created', color: 'teal', icon: IconSparkles },
-  TitleChanged: { label: 'Title changed', color: 'ink', icon: IconPencil },
-  DescriptionChanged: { label: 'Description changed', color: 'orange', icon: IconAlignLeft },
+  Created: {
+    label: 'Created',
+    color: 'forest',
+    textColor: readableOn('forest'),
+    icon: IconSparkles,
+  },
+  TitleChanged: {
+    label: 'Title changed',
+    color: 'gold',
+    textColor: readableOn('gold'),
+    icon: IconPencil,
+  },
+  DescriptionChanged: {
+    label: 'Description changed',
+    color: 'gray',
+    textColor: readableOn('gray'),
+    icon: IconAlignLeft,
+  },
 }
 
 function humanize(changeType: string): string {
@@ -22,7 +42,14 @@ function humanize(changeType: string): string {
 }
 
 export function changeTypeAppearance(changeType: string): ChangeTypeAppearance {
-  return APPEARANCE[changeType] ?? { label: humanize(changeType), color: 'gray', icon: IconPencil }
+  return (
+    APPEARANCE[changeType] ?? {
+      label: humanize(changeType),
+      color: 'gray',
+      textColor: readableOn('gray'),
+      icon: IconPencil,
+    }
+  )
 }
 
 export function changeTypeColor(changeType: string): string {

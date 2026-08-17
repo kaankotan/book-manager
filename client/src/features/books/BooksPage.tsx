@@ -66,7 +66,7 @@ function BookRow({ book }: { book: Book }) {
         {book.authors.length > 0 ? (
           <Group gap={6}>
             {book.authors.map((author) => (
-              <Badge key={author.id} variant="light" color="ink" size="sm">
+              <Badge key={author.id} variant="light" color="forest" size="sm">
                 {author.name}
               </Badge>
             ))}

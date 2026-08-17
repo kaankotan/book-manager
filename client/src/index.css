@@ -2,10 +2,17 @@ body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 :root[data-mantine-color-scheme='light'] {
-  --mantine-color-body: #f8f8fb;
+  --mantine-color-body: #faf7ef;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.011em;
 }
 
 .app-header {
@@ -13,3 +20,11 @@ body {
   background: color-mix(in srgb, var(--mantine-color-body) 82%, transparent);
 }
 
+.mantine-Table-table {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--mantine-color-gold-2);
+  color: var(--mantine-color-black);
+}

@@ -86,7 +86,7 @@ function BookDetail({ book }: { book: Book }) {
         <Group gap="lg" wrap="nowrap" align="flex-start">
           <ThemeIcon
             variant="gradient"
-            gradient={{ from: 'ink.6', to: 'ink.4', deg: 135 }}
+            gradient={{ from: 'forest.9', to: 'forest.6', deg: 135 }}
             size={56}
             radius="lg"
             visibleFrom="xs"
@@ -109,7 +109,7 @@ function BookDetail({ book }: { book: Book }) {
                 {book.authors.length > 0 ? (
                   <Group gap={6} mt={4}>
                     {book.authors.map((author) => (
-                      <Badge key={author.id} variant="light" color="ink" size="sm">
+                      <Badge key={author.id} variant="light" color="forest" size="sm">
                         {author.name}
                       </Badge>
                     ))}

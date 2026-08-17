@@ -22,8 +22,8 @@ function NavLink({ to, label, active }: { to: string; label: string; active: boo
         borderRadius: 'var(--mantine-radius-md)',
         fontSize: 'var(--mantine-font-size-sm)',
         fontWeight: 600,
-        color: active ? 'var(--mantine-color-ink-filled)' : 'var(--mantine-color-dimmed)',
-        background: active ? 'var(--mantine-color-ink-light)' : 'transparent',
+        color: active ? 'var(--mantine-color-forest-filled)' : 'var(--mantine-color-dimmed)',
+        background: active ? 'var(--mantine-color-forest-light)' : 'transparent',
       }}
     >
       {label}
@@ -41,7 +41,7 @@ export function Header() {
           <Group gap="xs" wrap="nowrap">
             <ThemeIcon
               variant="gradient"
-              gradient={{ from: 'ink.6', to: 'ink.4', deg: 135 }}
+              gradient={{ from: 'forest.9', to: 'forest.6', deg: 135 }}
               size={32}
               radius="md"
             >

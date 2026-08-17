@@ -33,7 +33,7 @@ function NotificationRow({
   bookTitle: string | undefined
   now: number
 }) {
-  const { label, color, icon: Icon } = changeTypeAppearance(event.changeType)
+  const { label, color, textColor, icon: Icon } = changeTypeAppearance(event.changeType)
 
   return (
     <Group gap="sm" wrap="nowrap" align="flex-start" px="md" py="xs">
@@ -43,7 +43,7 @@ function NotificationRow({
 
       <Box style={{ flex: 1, minWidth: 0 }}>
         <Group gap={6} wrap="nowrap">
-          <Text size="sm" fw={600} c={`${color}.7`} style={{ flexShrink: 0 }}>
+          <Text size="sm" fw={600} c={textColor} style={{ flexShrink: 0 }}>
             {label}
           </Text>
           <Text size="sm" c="dimmed" lineClamp={1}>
